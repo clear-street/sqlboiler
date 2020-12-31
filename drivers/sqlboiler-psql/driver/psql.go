@@ -252,6 +252,7 @@ func (p *PostgresDriver) Columns(schema, tableName string, whitelist, blacklist 
 						(
 							select typelem
 							from pg_type
+							inner join pg_namespace ON pg_type.typnamespace = pg_namespace.oid
 							where pg_type.typtype = 'b' and pg_type.typname = ('_' || c.udt_name) and pg_namespace.nspname=$1
 							limit 1
 						)
@@ -262,7 +263,7 @@ func (p *PostgresDriver) Columns(schema, tableName string, whitelist, blacklist 
 				end
 			) as column_type
 		) ct
-		where c.table_name = $2 and c.table_schema = $1`
+		where c.table_name = $2 and c.table_schema = $1 and c.is_generated = 'NEVER'`
 
 	if len(whitelist) > 0 {
 		cols := drivers.ColumnsFromList(whitelist, tableName)
